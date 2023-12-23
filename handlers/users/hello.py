@@ -9,13 +9,24 @@ from loader import dp, bot
 
 @dp.message_handler(text='Привет')
 async def bot_hello(message: types.Message):
-    await message.answer(f'Привет, {message.from_user.username}', reply_markup=kb.keybords.inline_kb)
+    await message.answer(f'Привет, {message.from_user.username}')
 
 
-@dp.callback_query_handler(lambda b: b.data == 'hello_btn')
-async def button_check(callback_query: types.CallbackQuery):
-    await bot.answer_callback_query(callback_query.id)
-    days = ['Понедельник', 'Вторник', 'Среда', 'Четверг']
-    today = datetime.datetime.now().weekday()
+@dp.message_handler(text='Писатель')
+async def bot_hello(message: types.Message):
+    await message.answer('Хемингуэй')
 
-    await bot.send_message(callback_query.from_user.id, f'{days[today]}')
+
+@dp.message_handler(text='Поэт')
+async def bot_hello(message: types.Message):
+    await message.answer('Шекспир')
+
+
+@dp.message_handler(text='Книга')
+async def bot_hello(message: types.Message):
+    await message.answer('Три товарища')
+
+
+@dp.message_handler(text='Монолог')
+async def bot_hello(message: types.Message):
+    await message.answer('Быть или не быть')
