@@ -6,3 +6,4 @@ from data import config
 bot = Bot(token=config.BOT_TOKEN, parse_mode=types.ParseMode.HTML)
 storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
+omdb_api_key = config.OMDB_API_KEY

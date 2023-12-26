@@ -4,7 +4,43 @@ from aiogram import types
 from aiogram.dispatcher import FSMContext
 
 import keyboards.default as kb
-from loader import dp, bot
+from loader import dp, bot, omdb_api_key
+
+from requests import request
+
+
+def create_response_message(response):
+    message = f'{response["Title"]}\n' \
+              f'Год выпуска: {response["Year"]}\n' \
+              f'Рейтинг: {response["imdbRating"]}\n' \
+              f'Длительность: {response["Runtime"]}\n' \
+              f'Режиссер: {response["Director"]}\n' \
+              f'Актеры: {response["Actors"]}'
+    return message
+
+
+@dp.message_handler(commands=['film'])
+async def bot_film(message: types.Message):
+    params = message.text.split()
+    request_URL = ''
+    if len(params) == 1:
+        await message.answer('Недостаточно параметров. Примеры использования параметров:\n'
+                             '1. <b>/film</b> название-фильма\n'
+                             '2. /film название-фильма год_фильма\n'
+                             '3. /film imdb_код_фильма_imdb>\n')
+        return
+    elif len(params) == 2:
+        if params[1][:5] == 'imdb_':
+            request_URL = f'https://www.omdbapi.com/?apikey={omdb_api_key}&i={params[1][5:]}'
+        else:
+            request_URL = f'https://www.omdbapi.com/?apikey={omdb_api_key}&t={params[1]}'
+    else:
+        request_URL = f'https://www.omdbapi.com/?apikey={omdb_api_key}&t={params[1]}&y={params[2]}'
+    response = request('GET', request_URL).json()
+    if response['Response'] == "True":
+        await message.answer(create_response_message(response))
+    else:
+        await message.answer(response['Error'])
 
 
 @dp.message_handler(text='Привет')
@@ -55,13 +91,15 @@ async def button_check(callback_query: types.CallbackQuery):
     class_info = f'*Информация о групповом занятии "{class_name}"*'
     await bot.send_message(callback_query.from_user.id, class_info)
 
-days = ['Понедельник: 9:00 - Утренний йога-класс, 12:00 - Силовая тренировка "BodyPump", 18:00 - Кардио-тренировка "Spinning"',
-        'Вторник: 10:00 - Зумба, 14:00 - Пилатес, 19:00 - Функциональная тренировка "CrossFit"',
-        'Среда: 8:00 - Утренний беговой клуб, 13:00 - Тренировка на TRX, 17:00 - Йога для начинающих',
-        'Четверг: 11:00 - Аэробика, 15:00 - Танцевальный фитнес, 20:00 - Стретчинг и релаксация',
-        'Пятница: 9:30 - Тренировка "HIIT", 16:00 - Силовая тренировка "BodyPump", 16:00 - Силовая тренировка "BodyPump"',
-        'Суббота: 10:00 - Зумба, 13:00 - Пилатес, 16:00 - Функциональная тренировка "CrossFit"',
-        'Воскресенье: 11:00 - Аэробика, 15:00 - Танцевальный фитнес, 18:00 - Стретчинг и релаксация']
+
+days = [
+    'Понедельник: 9:00 - Утренний йога-класс, 12:00 - Силовая тренировка "BodyPump", 18:00 - Кардио-тренировка "Spinning"',
+    'Вторник: 10:00 - Зумба, 14:00 - Пилатес, 19:00 - Функциональная тренировка "CrossFit"',
+    'Среда: 8:00 - Утренний беговой клуб, 13:00 - Тренировка на TRX, 17:00 - Йога для начинающих',
+    'Четверг: 11:00 - Аэробика, 15:00 - Танцевальный фитнес, 20:00 - Стретчинг и релаксация',
+    'Пятница: 9:30 - Тренировка "HIIT", 16:00 - Силовая тренировка "BodyPump", 16:00 - Силовая тренировка "BodyPump"',
+    'Суббота: 10:00 - Зумба, 13:00 - Пилатес, 16:00 - Функциональная тренировка "CrossFit"',
+    'Воскресенье: 11:00 - Аэробика, 15:00 - Танцевальный фитнес, 18:00 - Стретчинг и релаксация']
 
 
 @dp.message_handler(commands=['week'])
