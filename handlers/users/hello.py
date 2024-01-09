@@ -42,26 +42,6 @@ async def bot_film(message: types.Message):
         await message.answer(response['Error'])
 
 
-@dp.message_handler(commands=['random'])
-async def bot_random(message: types.Message):
-    numbers = message.text.split()
-    if len(numbers) != 3:
-        await message.answer('Неправильное количество параметров.')
-        return
-    json_params = {
-        "jsonrpc": "2.0",
-        "method": "generateIntegers",
-        "params": {"apiKey": "016e4ceb-a08d-497c-9c58-451028b0e5f0",
-                   "n": 1,
-                   "min": numbers[1],
-                   "max": numbers[2]},
-        "id": 1
-    }
-    response = request(method='GET', url='https://api.random.org/json-rpc/4/invoke', json=json_params).json()
-    if response['result']:
-        await message.answer(response['result']['random']['data'][0])
-    else:
-        await message.answer(response['Error'])
 
 
 @dp.message_handler(text='Привет')
