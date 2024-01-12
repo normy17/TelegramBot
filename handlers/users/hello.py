@@ -1,9 +1,6 @@
-import datetime
-
 from aiogram import types
 
-import keyboards.default as kb
-from loader import dp, bot, omdb_api_key
+from loader import dp, omdb_api_key
 
 from requests import request
 from json import dumps
@@ -47,7 +44,8 @@ async def bot_film(message: types.Message):
 async def bot_random(message: types.Message):
     numbers = message.text.split()
     if len(numbers) != 4:
-        await message.answer('Неправильное количество параметров.')
+        await message.answer(
+            'Неправильное количество параметров. Нужно ввести начало диапазона, конец и количество чисел. Пример: "/random 1 10 4"')
         return
     json_params = {
         "jsonrpc": "2.0",
@@ -66,70 +64,31 @@ async def bot_random(message: types.Message):
         await message.answer(response['Error'])
 
 
-@dp.message_handler(text='Привет')
-async def bot_hello(message: types.Message):
-    await message.answer(f'Привет, {message.from_user.username}')
-
-
-@dp.message_handler(text='Писатель')
-async def bot_hello(message: types.Message):
-    await message.answer('Хемингуэй')
-
-
-@dp.message_handler(text='Поэт')
-async def bot_hello(message: types.Message):
-    await message.answer('Шекспир')
-
-
-@dp.message_handler(text='Книга')
-async def bot_hello(message: types.Message):
-    await message.answer('Три товарища')
-
-
-@dp.message_handler(text='Монолог')
-async def bot_hello(message: types.Message):
-    await message.answer('Быть или не быть')
-
-# @dp.message_handler(commands=['coaches'])
-# async def bot_hello(message: types.Message):
-#     await message.answer(text='Список тренеров:', reply_markup=kb.keybords.inline_kb)
-#
-#
-# @dp.callback_query_handler(lambda b: b.data.startswith('coach_'))
-# async def button_check(callback_query: types.CallbackQuery):
-#     coach_name = callback_query.data.split('_')[1]
-#     coach_info = f'*Информация о тренере {coach_name}*'
-#     await bot.send_message(callback_query.from_user.id, coach_info)
-#
-#
-# @dp.message_handler(commands=['groups'])
-# async def bot_hello(message: types.Message):
-#     await message.answer(text='Список групповых занятий:', reply_markup=kb.keybords.inline_kb2)
-#
-#
-# @dp.callback_query_handler(lambda b: b.data.startswith('class_'))
-# async def button_check(callback_query: types.CallbackQuery):
-#     class_name = callback_query.data.split('_')[1]
-#     class_info = f'*Информация о групповом занятии "{class_name}"*'
-#     await bot.send_message(callback_query.from_user.id, class_info)
-#
-#
-# days = [
-#     'Понедельник: 9:00 - Утренний йога-класс, 12:00 - Силовая тренировка "BodyPump", 18:00 - Кардио-тренировка "Spinning"',
-#     'Вторник: 10:00 - Зумба, 14:00 - Пилатес, 19:00 - Функциональная тренировка "CrossFit"',
-#     'Среда: 8:00 - Утренний беговой клуб, 13:00 - Тренировка на TRX, 17:00 - Йога для начинающих',
-#     'Четверг: 11:00 - Аэробика, 15:00 - Танцевальный фитнес, 20:00 - Стретчинг и релаксация',
-#     'Пятница: 9:30 - Тренировка "HIIT", 16:00 - Силовая тренировка "BodyPump", 16:00 - Силовая тренировка "BodyPump"',
-#     'Суббота: 10:00 - Зумба, 13:00 - Пилатес, 16:00 - Функциональная тренировка "CrossFit"',
-#     'Воскресенье: 11:00 - Аэробика, 15:00 - Танцевальный фитнес, 18:00 - Стретчинг и релаксация']
-#
-#
-# @dp.message_handler(commands=['week'])
-# async def start(message: types.Message):
-#     await message.answer("\n".join(days))
-#
-#
-# @dp.message_handler(commands=['today'])
-# async def start(message: types.Message):
-#     today = datetime.datetime.now().weekday()
-#     await message.answer(f'{days[today]}')
+@dp.message_handler(commands=['random2'])
+async def bot_random(message: types.Message):
+    words = message.text.split()
+    if len(words) != 2 or (words[1] != 'Орел' or words[1] != 'Решка'):
+        await message.answer('Неправильный ввод. Нужно выбрать "Орел" или "Решка". Пример: "/random2 Решка"')
+        return
+    json_params = {
+        "jsonrpc": "2.0",
+        "method": "generateIntegers",
+        "params": {"apiKey": "016e4ceb-a08d-497c-9c58-451028b0e5f0",
+                   "n": 1,
+                   "min": 1,
+                   "max": 2},
+        "id": 1
+    }
+    encoded_data = dumps(json_params)
+    response = request(method='GET', url='https://api.random.org/json-rpc/1/invoke', data=encoded_data).json()
+    if response['result']:
+        if response['result']['random']['data'][0] == 1 and words[1] == "Орел":
+            await message.answer("Орел\nВы выиграли")
+        elif response['result']['random']['data'][0] == 1 and words[1] == "Решка":
+            await message.answer("Орел\nВы проиграли")
+        elif response['result']['random']['data'][0] == 2 and words[1] == "Орел":
+            await message.answer("Решка\nВы проиграли")
+        elif response['result']['random']['data'][0] == 2 and words[1] == "Решка":
+            await message.answer("Решка\nВы выиграли")
+    else:
+        await message.answer(response['Error'])
