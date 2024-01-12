@@ -6,6 +6,7 @@ import keyboards.default as kb
 from loader import dp, bot, omdb_api_key
 
 from requests import request
+from json import dumps
 
 
 def create_response_message(response):
@@ -45,21 +46,22 @@ async def bot_film(message: types.Message):
 @dp.message_handler(commands=['random'])
 async def bot_random(message: types.Message):
     numbers = message.text.split()
-    if len(numbers) != 3:
+    if len(numbers) != 4:
         await message.answer('Неправильное количество параметров.')
         return
     json_params = {
         "jsonrpc": "2.0",
         "method": "generateIntegers",
         "params": {"apiKey": "016e4ceb-a08d-497c-9c58-451028b0e5f0",
-                   "n": 1,
+                   "n": numbers[3],
                    "min": numbers[1],
                    "max": numbers[2]},
         "id": 1
     }
-    response = request(method='GET', url='https://api.random.org/json-rpc/4/invoke', json=json_params).json()
+    encoded_data = dumps(json_params)
+    response = request(method='GET', url='https://api.random.org/json-rpc/1/invoke', data=encoded_data).json()
     if response['result']:
-        await message.answer(response['result']['random']['data'][0])
+        await message.answer(response['result']['random']['data'])
     else:
         await message.answer(response['Error'])
 
